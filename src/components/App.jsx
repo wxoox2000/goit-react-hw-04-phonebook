@@ -1,4 +1,3 @@
-import { Component } from 'react';
 import { GlobalStyles } from './globalStyles';
 import { ContactForm } from './ContactForm/ContactForm';
 import { Filter } from './Filter/filter';
@@ -6,70 +5,79 @@ import { ContactList } from './ContactList/ContactList';
 import { nanoid } from 'nanoid';
 import { Wrap, Heading } from './App.styled';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
+import { useState, useEffect } from 'react';
 
-export class App extends Component {
-  state = {
-    contacts: [
-      { id: 'id-1', name: 'Rosie Simpson', number: '459-12-56' },
-      { id: 'id-2', name: 'Hermione Kline', number: '443-89-12' },
-      { id: 'id-3', name: 'Eden Clements', number: '645-17-79' },
-      { id: 'id-4', name: 'Annie Copeland', number: '227-91-26' },
-    ],
-    filter: '',
-  };
-  componentDidMount() {
+export const App = () => {
+  // state = {
+  //   contacts: [
+  //     { id: 'id-1', name: 'Rosie Simpson', number: '459-12-56' },
+  //     { id: 'id-2', name: 'Hermione Kline', number: '443-89-12' },
+  //     { id: 'id-3', name: 'Eden Clements', number: '645-17-79' },
+  //     { id: 'id-4', name: 'Annie Copeland', number: '227-91-26' },
+  //   ],
+  //   filter: '',
+  // };
+  const baseContacts = [
+    { id: 'id-1', name: 'Rosie Simpson', number: '459-12-56' },
+    { id: 'id-2', name: 'Hermione Kline', number: '443-89-12' },
+    { id: 'id-3', name: 'Eden Clements', number: '645-17-79' },
+    { id: 'id-4', name: 'Annie Copeland', number: '227-91-26' },
+  ];
+  const [contacts, setContacts] = useState(baseContacts);
+  const [filter, setfilter] = useState('');
+  useEffect(() => {
     const storedContacts = localStorage.getItem('contacts');
     if(storedContacts) {
-      this.setState({contacts: JSON.parse(storedContacts)});
+      const savedContacts = JSON.parse(storedContacts);
+      setContacts(savedContacts);
     }
-  }
-  componentDidUpdate() {
-    const contactsList = JSON.stringify(this.state.contacts);
-    localStorage.setItem('contacts', contactsList);
-  }
-  addContact = obj => {
-    const isInList = this.state.contacts.some(({ name }) => name === obj.name);
+  }, [])
+  
+  useEffect(() => {
+    if(baseContacts !== contacts){
+      const contactsList = JSON.stringify(contacts);
+      localStorage.setItem('contacts', contactsList);  
+    }
+  }, [contacts, baseContacts]);
+  const addContact = obj => {
+    const isInList = contacts.some(({ name }) => name === obj.name);
     if (isInList) {
       Notify.failure(`${obj.name} is already in contacts.`);
     } else {
       obj.id = nanoid();
-      this.setState(p => {
-        return { contacts: [...p.contacts, obj] };
-      })
+      setContacts([...contacts, obj])
       Notify.success('Contact added!');
     }
   };
-  findContact = () => {
-    return this.state.contacts.filter(contact => {
+  const findContact = () => {
+    return contacts.filter(contact => {
       return contact.name
         .concat(contact.number)
         .toLowerCase()
-        .includes(this.state.filter.toLowerCase());
+        .includes(filter.toLowerCase());
     });
   };
-  deleteContact = e => {
-    const newList = this.state.contacts.filter((contact) => contact.id !== e.target.id);
-    this.setState({contacts: newList});
+  const deleteContact = e => {
+    const newList = contacts.filter((contact) => contact.id !== e.target.id);
+    setContacts(newList);
     Notify.info('Contact deleted!')
   }
-  filterSearch = e => {
-    this.setState({ filter: e.target.value });
+  const filterSearch = e => {
+    setfilter(e.target.value);
   };
-  render() {
     return (
       <Wrap>
         <Heading>Phonebook</Heading>
-        <ContactForm addContact={this.addContact} />
+        <ContactForm addContact={addContact} />
         <Heading>Contacts</Heading>
-        <Filter searchQuote={this.filterSearch} />
+        <Filter searchQuote={filterSearch} />
         <ContactList
           data={
-            this.state.filter === '' ? this.state.contacts : this.findContact()
+            filter === '' ? contacts : findContact()
           }
-          onDelete={this.deleteContact}
+          onDelete={deleteContact}
         />
         <GlobalStyles />
       </Wrap>
     );
-  }
 }
