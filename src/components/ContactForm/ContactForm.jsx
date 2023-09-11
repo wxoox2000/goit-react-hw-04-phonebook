@@ -1,10 +1,8 @@
-import { Component } from 'react';
 import { Formik } from 'formik';
 import { PhonebookForm, FormItem, Error, Input, AddBtn } from './ContactForm.styled';
 import * as Yup from 'yup';
 
-export class ContactForm extends Component {
-  render() {
+export const ContactForm = ({addContact}) => {
     const SignupSchema = Yup.object().shape({
       name: Yup.string()
         .matches(
@@ -27,7 +25,7 @@ export class ContactForm extends Component {
         }}
         validationSchema={SignupSchema}
         onSubmit={(obj, actions) => {
-          this.props.addContact(obj);
+          addContact(obj);
           actions.resetForm();
         }}
       >
@@ -46,5 +44,4 @@ export class ContactForm extends Component {
         </PhonebookForm>
       </Formik>
     );
-  }
 }
